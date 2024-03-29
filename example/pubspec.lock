@@ -125,10 +125,10 @@ packages:
     dependency: transitive
     description:
       name: file_picker
-      sha256: c24465c112b1a31a37ac450afc2e1f927b7c11599beab93233d7ffb449373fe3
+      sha256: d1d0ac3966b36dc3e66eeefb40280c17feb87fa2099c6e22e6a1fc959327bd03
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "5.2.2"
+    version: "8.0.0+1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -384,10 +384,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: a6f0236dbda0f63aa9a25ad1ff9a9d8a4eaaa5012da0dc59d21afdb1dc361ca4
+      sha256: b0f37db61ba2f2e9b7a78a1caece0052564d1bc70668156cf3a29d676fe4e574
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "3.1.4"
+    version: "5.1.1"
 sdks:
   dart: ">=3.1.0 <4.0.0"
   flutter: ">=3.13.0"
