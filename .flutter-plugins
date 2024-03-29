@@ -1,9 +1,13 @@
 # This is a generated file; do not edit or check into version control.
-camera=/Users/welitonsousa/.pub-cache/hosted/pub.dartlang.org/camera-0.8.1+7/
-file_picker=/Users/welitonsousa/.pub-cache/hosted/pub.dartlang.org/file_picker-5.2.2/
-flutter_plugin_android_lifecycle=/Users/welitonsousa/.pub-cache/hosted/pub.dartlang.org/flutter_plugin_android_lifecycle-2.0.7/
-permission_handler=/Users/welitonsousa/.pub-cache/hosted/pub.dartlang.org/permission_handler-10.2.0/
-permission_handler_android=/Users/welitonsousa/.pub-cache/hosted/pub.dartlang.org/permission_handler_android-10.2.0/
-permission_handler_apple=/Users/welitonsousa/.pub-cache/hosted/pub.dartlang.org/permission_handler_apple-9.0.7/
-permission_handler_windows=/Users/welitonsousa/.pub-cache/hosted/pub.dartlang.org/permission_handler_windows-0.1.2/
-photo_gallery=/Users/welitonsousa/.pub-cache/hosted/pub.dartlang.org/photo_gallery-1.1.1/
+camera=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera-0.10.5+9/
+camera_android=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera_android-0.10.8+18/
+camera_avfoundation=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera_avfoundation-0.9.13+10/
+camera_web=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera_web-0.3.2+4/
+file_picker=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/file_picker-5.2.2/
+flutter_plugin_android_lifecycle=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/flutter_plugin_android_lifecycle-2.0.17/
+image_gallery_saver=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/image_gallery_saver-2.0.3/
+permission_handler=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/permission_handler-10.2.0/
+permission_handler_android=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/permission_handler_android-10.3.6/
+permission_handler_apple=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/permission_handler_apple-9.1.4/
+permission_handler_windows=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/permission_handler_windows-0.1.3/
+photo_gallery=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/photo_gallery-1.1.1/

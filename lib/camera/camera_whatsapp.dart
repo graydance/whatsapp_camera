@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera_camera/camera_camera.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_up_panel/flutter_sliding_up_panel.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_gallery/photo_gallery.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:whatsapp_camera/camera/view_image.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 class _WhatsAppCameraController extends ChangeNotifier {
   ///
@@ -88,6 +88,7 @@ class _WhatsAppCameraController extends ChangeNotifier {
   }
 
   void captureImage(File file) {
+    ImageGallerySaver.saveFile(file.path);
     selectedImages.add(file);
   }
 
@@ -218,72 +219,72 @@ class _WhatsappCameraState extends State<WhatsappCamera>
               ],
             ),
           ),
-          Positioned(
-            bottom: 96,
-            left: 0.0,
-            right: 0.0,
-            child: GestureDetector(
-              dragStartBehavior: DragStartBehavior.down,
-              onVerticalDragStart: (details) => painel.expand(),
-              child: SizedBox(
-                height: 120,
-                child: AnimatedBuilder(
-                    animation: controller,
-                    builder: (context, child) {
-                      return Column(
-                        children: [
-                          if (controller.images.isNotEmpty)
-                            const RotatedBox(
-                              quarterTurns: 1,
-                              child: Icon(
-                                Icons.arrow_back_ios,
-                                color: Colors.white,
-                              ),
-                            ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: controller.images.length,
-                              physics: const BouncingScrollPhysics(),
-                              scrollDirection: Axis.horizontal,
-                              itemBuilder: (context, index) {
-                                return InkWell(
-                                  onTap: () async {
-                                    controller
-                                        .selectImage(controller.images[index])
-                                        .then((value) {
-                                      Navigator.pop(
-                                        context,
-                                        controller.selectedImages,
-                                      );
-                                    });
-                                  },
-                                  child: Container(
-                                    height: 100,
-                                    width: 100,
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 5),
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        fit: BoxFit.cover,
-                                        isAntiAlias: true,
-                                        filterQuality: FilterQuality.high,
-                                        image: ThumbnailProvider(
-                                          highQuality: true,
-                                          mediumId: controller.images[index].id,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    }),
-              ),
-            ),
-          ),
+          // Positioned(
+          //   bottom: 96,
+          //   left: 0.0,
+          //   right: 0.0,
+          //   child: GestureDetector(
+          //     dragStartBehavior: DragStartBehavior.down,
+          //     onVerticalDragStart: (details) => painel.expand(),
+          //     child: SizedBox(
+          //       height: 120,
+          //       child: AnimatedBuilder(
+          //           animation: controller,
+          //           builder: (context, child) {
+          //             return Column(
+          //               children: [
+          //                 if (controller.images.isNotEmpty)
+          //                   const RotatedBox(
+          //                     quarterTurns: 1,
+          //                     child: Icon(
+          //                       Icons.arrow_back_ios,
+          //                       color: Colors.white,
+          //                     ),
+          //                   ),
+          //                 Expanded(
+          //                   child: ListView.builder(
+          //                     itemCount: controller.images.length,
+          //                     physics: const BouncingScrollPhysics(),
+          //                     scrollDirection: Axis.horizontal,
+          //                     itemBuilder: (context, index) {
+          //                       return InkWell(
+          //                         onTap: () async {
+          //                           controller
+          //                               .selectImage(controller.images[index])
+          //                               .then((value) {
+          //                             Navigator.pop(
+          //                               context,
+          //                               controller.selectedImages,
+          //                             );
+          //                           });
+          //                         },
+          //                         child: Container(
+          //                           height: 100,
+          //                           width: 100,
+          //                           margin: const EdgeInsets.symmetric(
+          //                               horizontal: 5),
+          //                           decoration: BoxDecoration(
+          //                             image: DecorationImage(
+          //                               fit: BoxFit.cover,
+          //                               isAntiAlias: true,
+          //                               filterQuality: FilterQuality.high,
+          //                               image: ThumbnailProvider(
+          //                                 highQuality: true,
+          //                                 mediumId: controller.images[index].id,
+          //                               ),
+          //                             ),
+          //                           ),
+          //                         ),
+          //                       );
+          //                     },
+          //                   ),
+          //                 ),
+          //               ],
+          //             );
+          //           }),
+          //     ),
+          //   ),
+          // ),
           Center(
             child: SlidingUpPanelWidget(
               controlHeight: 0,
