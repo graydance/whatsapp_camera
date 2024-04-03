@@ -1,11 +1,13 @@
 # This is a generated file; do not edit or check into version control.
-camera=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera-0.10.5+9/
-camera_android=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera_android-0.10.8+18/
-camera_avfoundation=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera_avfoundation-0.9.13+10/
-camera_web=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera_web-0.3.2+4/
+camerawesome=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camerawesome-2.0.1/
 file_picker=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/file_picker-8.0.0+1/
 flutter_plugin_android_lifecycle=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/flutter_plugin_android_lifecycle-2.0.17/
 image_gallery_saver=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/image_gallery_saver-2.0.3/
+path_provider=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/path_provider-2.1.2/
+path_provider_android=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/path_provider_android-2.2.2/
+path_provider_foundation=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/path_provider_foundation-2.3.2/
+path_provider_linux=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/path_provider_linux-2.2.1/
+path_provider_windows=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/path_provider_windows-2.2.1/
 permission_handler=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/permission_handler-10.2.0/
 permission_handler_android=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/permission_handler_android-10.3.6/
 permission_handler_apple=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/permission_handler_apple-9.1.4/

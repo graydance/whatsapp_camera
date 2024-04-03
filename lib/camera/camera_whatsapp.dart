@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:camera_camera/camera_camera.dart';
+import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_up_panel/flutter_sliding_up_panel.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -149,11 +149,14 @@ class _WhatsappCameraState extends State<WhatsappCamera>
     with WidgetsBindingObserver {
   late _WhatsAppCameraController controller;
   final painel = SlidingUpPanelController();
+  MediaCapture? _mediaCapture;
+  StreamSubscription<MediaCapture?>? _subscription;
 
   @override
   void dispose() {
     controller.dispose();
     painel.dispose();
+    _subscription?.cancel();
     super.dispose();
   }
 
@@ -186,14 +189,86 @@ class _WhatsappCameraState extends State<WhatsappCamera>
         children: [
           SizedBox(
             width: MediaQuery.of(context).size.width,
-            child: CameraCamera(
-              enableZoom: false,
-              resolutionPreset: ResolutionPreset.high,
-              onFile: (file) {
-                controller.captureImage(file);
-                Navigator.pop(context, controller.selectedImages);
+            child: CameraAwesomeBuilder.awesome(
+              saveConfig: SaveConfig.photo(),
+              sensorConfig: SensorConfig.single(
+                sensor: Sensor.position(SensorPosition.back),
+                aspectRatio: CameraAspectRatios.ratio_16_9,
+              ),
+              theme: AwesomeTheme(
+                bottomActionsBackgroundColor: Colors.black.withOpacity(0.5),
+                buttonTheme: AwesomeButtonTheme(
+                  backgroundColor: Colors.black.withOpacity(0.5),
+                  iconSize: 20,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.all(16),
+                  // Tap visual feedback (ripple, bounce...)
+                  buttonBuilder: (child, onTap) {
+                    return ClipOval(
+                      child: Material(
+                        color: Colors.transparent,
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.cyan.withOpacity(0.5),
+                          onTap: onTap,
+                          child: child,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              topActionsBuilder: (state) => Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  (state is PhotoCameraState)
+                      ? AwesomeAspectRatioButton(
+                          state: state,
+                        )
+                      : const SizedBox()
+                ],
+              ),
+              middleContentBuilder: (state) {
+                _subscription ??=
+                    state.captureState$.listen((MediaCapture? mediaCapture) {
+                  if (_mediaCapture == mediaCapture) return;
+                  _mediaCapture = mediaCapture;
+                  if (mediaCapture != null &&
+                      mediaCapture.status == MediaCaptureStatus.success) {
+                    controller.captureImage(File(filePath(mediaCapture)));
+                    Navigator.pop(context, controller.selectedImages);
+                  }
+                });
+                return Container();
               },
+              bottomActionsBuilder: (state) => AwesomeBottomActions(
+                state: state,
+                left: AwesomeFlashButton(
+                  state: state,
+                ),
+                right: AwesomeCameraSwitchButton(
+                  state: state,
+                  scale: 1.0,
+                  onSwitchTap: (state) {
+                    state.switchCameraSensor(
+                      aspectRatio: state.sensorConfig.aspectRatio,
+                    );
+                  },
+                ),
+                onMediaTap: (mediaCapture) {
+                  debugPrint("xxxxxxxxx");
+                },
+              ),
             ),
+            // CameraCamera(
+            //   enableZoom: false,
+            //   resolutionPreset: ResolutionPreset.high,
+            //   onFile: (file) {
+            //     controller.captureImage(file);
+            //     Navigator.pop(context, controller.selectedImages);
+            //   },
+            // ),
           ),
           Padding(
             padding: const EdgeInsets.only(top: 30),
@@ -311,6 +386,17 @@ class _WhatsappCameraState extends State<WhatsappCamera>
         ],
       ),
     );
+  }
+
+  String filePath(MediaCapture mediaCapture) {
+    if (mediaCapture.status == MediaCaptureStatus.success) {
+      return mediaCapture.captureRequest.when(
+        single: (single) => single.file!.path,
+        multiple: (multiple) => multiple.fileBySensor.values.first!.path,
+      );
+    } else {
+      return "null found";
+    }
   }
 }
 
