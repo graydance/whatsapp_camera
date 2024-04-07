@@ -1,4 +1,8 @@
 # This is a generated file; do not edit or check into version control.
+camera=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera-0.10.5+9/
+camera_android=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera_android-0.10.9/
+camera_avfoundation=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera_avfoundation-0.9.13+10/
+camera_web=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camera_web-0.3.3/
 camerawesome=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/camerawesome-2.0.1/
 file_picker=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/file_picker-8.0.0+1/
 flutter_plugin_android_lifecycle=/Users/zhangweifeng/.pub-cache/hosted/pub.flutter-io.cn/flutter_plugin_android_lifecycle-2.0.17/

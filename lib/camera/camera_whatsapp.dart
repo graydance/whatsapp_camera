@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:camera/camera.dart';
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_up_panel/flutter_sliding_up_panel.dart';
@@ -139,7 +140,7 @@ class WhatsappCamera extends StatefulWidget {
   ///
   ///```
   ///
-  const WhatsappCamera({super.key, this.multiple = true});
+  const WhatsappCamera({super.key, this.multiple = false});
 
   @override
   State<WhatsappCamera> createState() => _WhatsappCameraState();
@@ -151,6 +152,7 @@ class _WhatsappCameraState extends State<WhatsappCamera>
   final painel = SlidingUpPanelController();
   MediaCapture? _mediaCapture;
   StreamSubscription<MediaCapture?>? _subscription;
+  late bool _hasFrontCamera;
 
   @override
   void dispose() {
@@ -176,8 +178,10 @@ class _WhatsappCameraState extends State<WhatsappCamera>
         controller.selectedImages.clear();
       }
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       controller.inicialize();
+      _hasFrontCamera = await hasFrontCamera();
+      setState(() {});
     });
   }
 
@@ -185,205 +189,117 @@ class _WhatsappCameraState extends State<WhatsappCamera>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: CameraAwesomeBuilder.awesome(
-              saveConfig: SaveConfig.photo(),
-              sensorConfig: SensorConfig.single(
-                sensor: Sensor.position(SensorPosition.back),
-                aspectRatio: CameraAspectRatios.ratio_16_9,
-              ),
-              theme: AwesomeTheme(
-                bottomActionsBackgroundColor: Colors.black.withOpacity(0.5),
-                buttonTheme: AwesomeButtonTheme(
-                  backgroundColor: Colors.black.withOpacity(0.5),
-                  iconSize: 20,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.all(16),
-                  // Tap visual feedback (ripple, bounce...)
-                  buttonBuilder: (child, onTap) {
-                    return ClipOval(
-                      child: Material(
-                        color: Colors.transparent,
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.cyan.withOpacity(0.5),
-                          onTap: onTap,
-                          child: child,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              topActionsBuilder: (state) => Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  (state is PhotoCameraState)
-                      ? AwesomeAspectRatioButton(
-                          state: state,
-                        )
-                      : const SizedBox()
-                ],
-              ),
-              middleContentBuilder: (state) {
-                _subscription ??=
-                    state.captureState$.listen((MediaCapture? mediaCapture) {
-                  if (_mediaCapture == mediaCapture) return;
-                  _mediaCapture = mediaCapture;
-                  if (mediaCapture != null &&
-                      mediaCapture.status == MediaCaptureStatus.success) {
-                    controller.captureImage(File(filePath(mediaCapture)));
-                    Navigator.pop(context, controller.selectedImages);
-                  }
-                });
-                return Container();
-              },
-              bottomActionsBuilder: (state) => AwesomeBottomActions(
-                state: state,
-                left: AwesomeFlashButton(
-                  state: state,
-                ),
-                right: AwesomeCameraSwitchButton(
-                  state: state,
-                  scale: 1.0,
-                  onSwitchTap: (state) {
-                    state.switchCameraSensor(
-                      aspectRatio: state.sensorConfig.aspectRatio,
-                    );
-                  },
-                ),
-                onMediaTap: (mediaCapture) {
-                  debugPrint("xxxxxxxxx");
-                },
-              ),
-            ),
-            // CameraCamera(
-            //   enableZoom: false,
-            //   resolutionPreset: ResolutionPreset.high,
-            //   onFile: (file) {
-            //     controller.captureImage(file);
-            //     Navigator.pop(context, controller.selectedImages);
-            //   },
-            // ),
+      body: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: CameraAwesomeBuilder.awesome(
+          saveConfig: SaveConfig.photo(),
+          sensorConfig: SensorConfig.single(
+            sensor: Sensor.position(SensorPosition.back),
+            aspectRatio: CameraAspectRatios.ratio_16_9,
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 30),
+          previewFit: CameraPreviewFit.fitWidth,
+          previewPadding: const EdgeInsets.only(left: 150, top: 100),
+          previewAlignment: Alignment.center,
+          theme: AwesomeTheme(
+            bottomActionsBackgroundColor: Colors.black.withOpacity(0.5),
+            buttonTheme: AwesomeButtonTheme(
+              backgroundColor: Colors.black.withOpacity(0.5),
+              iconSize: 20,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.all(16),
+
+              // Tap visual feedback (ripple, bounce...)
+              buttonBuilder: (child, onTap) {
+                return ClipOval(
+                  child: Material(
+                    color: Colors.transparent,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.cyan.withOpacity(0.5),
+                      onTap: onTap,
+                      child: child,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          topActionsBuilder: (state) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                IconButton(
-                  color: Colors.white,
-                  onPressed: (() => Navigator.pop(context)),
-                  icon: const Icon(Icons.close),
+                AwesomeOrientedWidget(
+                  rotateWithDevice: true,
+                  child: IconButton(
+                    color: Colors.white,
+                    onPressed: (() => Navigator.pop(context)),
+                    icon: const Icon(Icons.close),
+                  ),
                 ),
-                IconButton(
-                  color: Colors.white,
-                  onPressed: () async {
-                    controller.openGallery().then((value) {
-                      if (controller.selectedImages.isNotEmpty) {
-                        Navigator.pop(context, controller.selectedImages);
-                      }
-                    });
-                  },
-                  icon: const Icon(Icons.image),
+                (state is PhotoCameraState)
+                    ? AwesomeAspectRatioButton(
+                        state: state,
+                      )
+                    : const SizedBox(),
+                AwesomeOrientedWidget(
+                  rotateWithDevice: true,
+                  child: IconButton(
+                    color: Colors.white,
+                    onPressed: () async {
+                      controller.openGallery().then((value) {
+                        if (controller.selectedImages.isNotEmpty) {
+                          Navigator.pop(context, controller.selectedImages);
+                        }
+                      });
+                    },
+                    icon: const Icon(Icons.image),
+                  ),
                 ),
               ],
             ),
           ),
-          // Positioned(
-          //   bottom: 96,
-          //   left: 0.0,
-          //   right: 0.0,
-          //   child: GestureDetector(
-          //     dragStartBehavior: DragStartBehavior.down,
-          //     onVerticalDragStart: (details) => painel.expand(),
-          //     child: SizedBox(
-          //       height: 120,
-          //       child: AnimatedBuilder(
-          //           animation: controller,
-          //           builder: (context, child) {
-          //             return Column(
-          //               children: [
-          //                 if (controller.images.isNotEmpty)
-          //                   const RotatedBox(
-          //                     quarterTurns: 1,
-          //                     child: Icon(
-          //                       Icons.arrow_back_ios,
-          //                       color: Colors.white,
-          //                     ),
-          //                   ),
-          //                 Expanded(
-          //                   child: ListView.builder(
-          //                     itemCount: controller.images.length,
-          //                     physics: const BouncingScrollPhysics(),
-          //                     scrollDirection: Axis.horizontal,
-          //                     itemBuilder: (context, index) {
-          //                       return InkWell(
-          //                         onTap: () async {
-          //                           controller
-          //                               .selectImage(controller.images[index])
-          //                               .then((value) {
-          //                             Navigator.pop(
-          //                               context,
-          //                               controller.selectedImages,
-          //                             );
-          //                           });
-          //                         },
-          //                         child: Container(
-          //                           height: 100,
-          //                           width: 100,
-          //                           margin: const EdgeInsets.symmetric(
-          //                               horizontal: 5),
-          //                           decoration: BoxDecoration(
-          //                             image: DecorationImage(
-          //                               fit: BoxFit.cover,
-          //                               isAntiAlias: true,
-          //                               filterQuality: FilterQuality.high,
-          //                               image: ThumbnailProvider(
-          //                                 highQuality: true,
-          //                                 mediumId: controller.images[index].id,
-          //                               ),
-          //                             ),
-          //                           ),
-          //                         ),
-          //                       );
-          //                     },
-          //                   ),
-          //                 ),
-          //               ],
-          //             );
-          //           }),
-          //     ),
-          //   ),
-          // ),
-          Center(
-            child: SlidingUpPanelWidget(
-              controlHeight: 0,
-              panelController: painel,
-              child: AnimatedBuilder(
-                  animation: controller,
-                  builder: (context, child) {
-                    return _ImagesPage(
-                      controller: controller,
-                      close: () {
-                        painel.hide();
+          middleContentBuilder: (state) => const SizedBox(),
+          bottomActionsBuilder: (state) {
+            _subscription ??=
+                state.captureState$.listen((MediaCapture? mediaCapture) {
+              if (_mediaCapture == mediaCapture) return;
+              _mediaCapture = mediaCapture;
+              if (mediaCapture != null &&
+                  mediaCapture.status == MediaCaptureStatus.success) {
+                controller.captureImage(File(filePath(mediaCapture)));
+                Navigator.pop(context, controller.selectedImages);
+              }
+            });
+
+            return AwesomeBottomActions(
+              state: state,
+              left: AwesomeFlashButton(
+                state: state,
+              ),
+              right: _hasFrontCamera
+                  ? AwesomeCameraSwitchButton(
+                      state: state,
+                      scale: 1.0,
+                      onSwitchTap: (state) {
+                        state.switchCameraSensor(
+                          aspectRatio: state.sensorConfig.aspectRatio,
+                        );
                       },
-                      done: () {
-                        if (controller.selectedImages.isNotEmpty) {
-                          Navigator.pop(context, controller.selectedImages);
-                        } else {
-                          painel.hide();
-                        }
-                      },
-                    );
-                  }),
-            ),
-          )
-        ],
+                    )
+                  : null,
+            );
+          },
+        ),
+        // CameraCamera(
+        //   enableZoom: false,
+        //   resolutionPreset: ResolutionPreset.high,
+        //   onFile: (file) {
+        //     controller.captureImage(file);
+        //     Navigator.pop(context, controller.selectedImages);
+        //   },
+        // ),
       ),
     );
   }
@@ -397,6 +313,21 @@ class _WhatsappCameraState extends State<WhatsappCamera>
     } else {
       return "null found";
     }
+  }
+
+  Future<bool> hasFrontCamera() async {
+    // 初始化相机
+    WidgetsFlutterBinding.ensureInitialized();
+    List<CameraDescription> cameras = await availableCameras();
+
+    // 检查是否有前置摄像头
+    for (var camera in cameras) {
+      if (camera.lensDirection == CameraLensDirection.front) {
+        return true; // 存在前置摄像头
+      }
+    }
+
+    return false; // 不存在前置摄像头
   }
 }
 
