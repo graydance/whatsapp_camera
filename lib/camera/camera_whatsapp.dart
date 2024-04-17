@@ -195,10 +195,10 @@ class _WhatsappCameraState extends State<WhatsappCamera>
           saveConfig: SaveConfig.photo(),
           sensorConfig: SensorConfig.single(
             sensor: Sensor.position(SensorPosition.back),
-            aspectRatio: CameraAspectRatios.ratio_16_9,
+            aspectRatio: CameraAspectRatios.ratio_4_3,
           ),
-          previewFit: CameraPreviewFit.fitWidth,
-          previewPadding: const EdgeInsets.only(left: 150, top: 100),
+          previewFit: CameraPreviewFit.contain,
+          // previewPadding: const EdgeInsets.only(left: 150, top: 100),
           previewAlignment: Alignment.center,
           theme: AwesomeTheme(
             bottomActionsBackgroundColor: Colors.black.withOpacity(0.5),
