@@ -153,6 +153,16 @@ class _WhatsappCameraState extends State<WhatsappCamera>
   MediaCapture? _mediaCapture;
   StreamSubscription<MediaCapture?>? _subscription;
   late bool _hasFrontCamera;
+  CameraAspectRatios _currentAspectRatio = CameraAspectRatios.ratio_4_3;
+  double get _currentAspectRatioValue {
+    if (_currentAspectRatio == CameraAspectRatios.ratio_4_3) {
+      return 4.0 / 3.0;
+    } else if (_currentAspectRatio == CameraAspectRatios.ratio_1_1) {
+      return 1.0 / 1.0;
+    } else {
+      return 16.0 / 9.0;
+    }
+  }
 
   @override
   void dispose() {
@@ -195,13 +205,47 @@ class _WhatsappCameraState extends State<WhatsappCamera>
           saveConfig: SaveConfig.photo(),
           sensorConfig: SensorConfig.single(
             sensor: Sensor.position(SensorPosition.back),
-            aspectRatio: CameraAspectRatios.ratio_4_3,
+            aspectRatio: _currentAspectRatio,
           ),
           previewFit: CameraPreviewFit.contain,
-          // previewPadding: const EdgeInsets.only(left: 150, top: 100),
-          previewAlignment: Alignment.center,
+          // previewAlignment: Alignment.center,
+          previewDecoratorBuilder: (state, preview) {
+            final screenWidth = MediaQuery.of(context).size.width;
+            final screenHeight = MediaQuery.of(context).size.height;
+            final finalPreviewHeight = screenWidth * _currentAspectRatioValue;
+            final offsetHeight = (screenHeight - finalPreviewHeight) * 0.5;
+            if (offsetHeight < 0) {
+              return const SizedBox();
+            }
+            debugPrint(
+                "========${preview.previewSize.toString()}, ${preview.rect.toString()}, ${preview.nativePreviewSize.toString()}");
+            return Stack(
+              children: [
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    height: offsetHeight,
+                    color: Colors.black,
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    height: offsetHeight,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            );
+          },
           theme: AwesomeTheme(
-            bottomActionsBackgroundColor: Colors.black.withOpacity(0.5),
+            bottomActionsBackgroundColor: Colors.transparent,
             buttonTheme: AwesomeButtonTheme(
               backgroundColor: Colors.black.withOpacity(0.5),
               iconSize: 20,
@@ -238,11 +282,38 @@ class _WhatsappCameraState extends State<WhatsappCamera>
                     icon: const Icon(Icons.close),
                   ),
                 ),
-                (state is PhotoCameraState)
-                    ? AwesomeAspectRatioButton(
-                        state: state,
-                      )
-                    : const SizedBox(),
+                // (state is PhotoCameraState)
+                //     ? AwesomeAspectRatioButton(
+                //         state: state,
+                //         onAspectRatioTap: (sensorConfig, aspectRatio) {
+                //           sensorConfig.switchCameraRatio();
+                //           if (aspectRatio == CameraAspectRatios.ratio_16_9) {
+                //             // setAspectRatio(CameraAspectRatios.ratio_4_3);
+                //             setState(() {
+                //               _currentAspectRatio =
+                //                   CameraAspectRatios.ratio_4_3;
+                //             });
+                //           } else if (aspectRatio ==
+                //               CameraAspectRatios.ratio_4_3) {
+                //             // setAspectRatio(CameraAspectRatios.ratio_1_1);
+                //             setState(() {
+                //               _currentAspectRatio =
+                //                   CameraAspectRatios.ratio_1_1;
+                //             });
+                //           } else {
+                //             // setAspectRatio(CameraAspectRatios.ratio_16_9);
+                //             setState(() {
+                //               _currentAspectRatio =
+                //                   CameraAspectRatios.ratio_16_9;
+                //             });
+                //           }
+                //           debugPrint("${sensorConfig.aspectRatio.toString()}");
+                //           // state.switchCameraSensor(
+                //           //   aspectRatio: CameraAspectRatios.ratio_1_1,
+                //           // );
+                //         },
+                //       )
+                //     : const SizedBox(),
                 AwesomeOrientedWidget(
                   rotateWithDevice: true,
                   child: IconButton(
