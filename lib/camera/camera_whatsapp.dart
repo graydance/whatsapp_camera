@@ -80,6 +80,7 @@ class _WhatsAppCameraController extends ChangeNotifier {
     final res = await FilePicker.platform.pickFiles(
       allowMultiple: multiple,
       type: FileType.image,
+      compressionQuality: 0,
     );
     if (res != null) {
       for (var element in res.files) {
