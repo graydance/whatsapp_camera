@@ -190,7 +190,7 @@ class _WhatsappCameraState extends State<WhatsappCamera>
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      controller.inicialize();
+      // controller.inicialize();
       _hasFrontCamera = await hasFrontCamera();
       setState(() {});
     });
