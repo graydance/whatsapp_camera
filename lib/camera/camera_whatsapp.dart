@@ -6,9 +6,9 @@ import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_up_panel/flutter_sliding_up_panel.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:photo_gallery/photo_gallery.dart';
+// import 'package:photo_gallery/photo_gallery.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:whatsapp_camera/camera/view_image.dart';
+// import 'package:whatsapp_camera/camera/view_image.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 class _WhatsAppCameraController extends ChangeNotifier {
@@ -26,7 +26,7 @@ class _WhatsAppCameraController extends ChangeNotifier {
   ///
   final bool multiple;
   final selectedImages = <File>[];
-  var images = <Medium>[];
+  // var images = <Medium>[];
 
   Future<bool> handlerPermissions() async {
     final status = await Permission.storage.request();
@@ -43,38 +43,38 @@ class _WhatsAppCameraController extends ChangeNotifier {
     return index != -1;
   }
 
-  _timer() {
-    Timer.periodic(const Duration(seconds: 2), (t) async {
-      Permission.camera.isGranted.then((value) {
-        if (value) {
-          getPhotosToGallery();
-          t.cancel();
-        }
-      });
-    });
-  }
+  // _timer() {
+  //   Timer.periodic(const Duration(seconds: 2), (t) async {
+  //     Permission.camera.isGranted.then((value) {
+  //       if (value) {
+  //         getPhotosToGallery();
+  //         t.cancel();
+  //       }
+  //     });
+  //   });
+  // }
 
-  Future<void> getPhotosToGallery() async {
-    final permission = await handlerPermissions();
-    if (permission) {
-      final albums = await PhotoGallery.listAlbums(
-        mediumType: MediumType.image,
-      );
-      final res = await Future.wait(albums.map((e) => e.listMedia()));
-      final index = res.indexWhere((e) => e.album.name == 'All');
-      if (index != -1) images.addAll(res[index].items);
-      if (index == -1) {
-        for (var e in res) {
-          images.addAll(e.items);
-        }
-      }
-      notifyListeners();
-    }
-  }
+  // Future<void> getPhotosToGallery() async {
+  //   final permission = await handlerPermissions();
+  //   if (permission) {
+  //     final albums = await PhotoGallery.listAlbums(
+  //       mediumType: MediumType.image,
+  //     );
+  //     final res = await Future.wait(albums.map((e) => e.listMedia()));
+  //     final index = res.indexWhere((e) => e.album.name == 'All');
+  //     if (index != -1) images.addAll(res[index].items);
+  //     if (index == -1) {
+  //       for (var e in res) {
+  //         images.addAll(e.items);
+  //       }
+  //     }
+  //     notifyListeners();
+  //   }
+  // }
 
-  Future<void> inicialize() async {
-    _timer();
-  }
+  // Future<void> inicialize() async {
+  //   _timer();
+  // }
 
   Future<void> openGallery() async {
     final res = await FilePicker.platform.pickFiles(
@@ -94,23 +94,23 @@ class _WhatsAppCameraController extends ChangeNotifier {
     selectedImages.add(file);
   }
 
-  Future<void> selectImage(Medium image) async {
-    if (multiple) {
-      final index = selectedImages
-          .indexWhere((e) => e.path.split('/').last == image.filename);
-      if (index != -1) {
-        selectedImages.removeAt(index);
-      } else {
-        final file = await image.getFile();
-        selectedImages.add(file);
-      }
-    } else {
-      selectedImages.clear();
-      final file = await image.getFile();
-      selectedImages.add(file);
-    }
-    notifyListeners();
-  }
+  // Future<void> selectImage(Medium image) async {
+  //   if (multiple) {
+  //     final index = selectedImages
+  //         .indexWhere((e) => e.path.split('/').last == image.filename);
+  //     if (index != -1) {
+  //       selectedImages.removeAt(index);
+  //     } else {
+  //       final file = await image.getFile();
+  //       selectedImages.add(file);
+  //     }
+  //   } else {
+  //     selectedImages.clear();
+  //     final file = await image.getFile();
+  //     selectedImages.add(file);
+  //   }
+  //   notifyListeners();
+  // }
 }
 
 class WhatsappCamera extends StatefulWidget {
@@ -403,195 +403,195 @@ class _WhatsappCameraState extends State<WhatsappCamera>
   }
 }
 
-class _ImagesPage extends StatefulWidget {
-  final _WhatsAppCameraController controller;
+// class _ImagesPage extends StatefulWidget {
+//   final _WhatsAppCameraController controller;
 
-  ///
-  /// close action
-  /// how use:
-  /// ```dart
-  /// close: () {
-  ///   //pop painel
-  /// }
-  /// ```
-  ///
-  final void Function()? close;
+//   ///
+//   /// close action
+//   /// how use:
+//   /// ```dart
+//   /// close: () {
+//   ///   //pop painel
+//   /// }
+//   /// ```
+//   ///
+//   final void Function()? close;
 
-  ///
-  /// done action
-  /// how use:
-  /// ```dart
-  /// done: () {
-  ///   //send images
-  /// }
-  /// ```
-  ///
-  final void Function()? done;
+//   ///
+//   /// done action
+//   /// how use:
+//   /// ```dart
+//   /// done: () {
+//   ///   //send images
+//   /// }
+//   /// ```
+//   ///
+//   final void Function()? done;
 
-  ///
-  ///
-  /// this is thi page of swipe to up
-  /// and show the images of gallery
-  /// don`t is necessary your implementation by the final programmer
-  ///
-  ///
-  const _ImagesPage({
-    required this.controller,
-    required this.close,
-    required this.done,
-  });
+//   ///
+//   ///
+//   /// this is thi page of swipe to up
+//   /// and show the images of gallery
+//   /// don`t is necessary your implementation by the final programmer
+//   ///
+//   ///
+//   const _ImagesPage({
+//     required this.controller,
+//     required this.close,
+//     required this.done,
+//   });
 
-  @override
-  State<_ImagesPage> createState() => __ImagesPageState();
-}
+//   @override
+//   State<_ImagesPage> createState() => __ImagesPageState();
+// }
 
-class __ImagesPageState extends State<_ImagesPage> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black,
-      height: MediaQuery.of(context).size.height - 40,
-      child: Column(
-        children: [
-          Container(
-            height: 40,
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(15),
-                  topRight: Radius.circular(15),
-                )),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  onPressed: widget.close?.call,
-                  icon: const Icon(Icons.close),
-                ),
-                if (widget.controller.multiple)
-                  Text(widget.controller.selectedImages.length.toString()),
-                IconButton(
-                  onPressed: widget.done?.call,
-                  icon: const Icon(Icons.check),
-                )
-              ],
-            ),
-          ),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              itemCount: widget.controller.images.length,
-              physics: const BouncingScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisExtent: 140,
-                crossAxisSpacing: 5,
-                mainAxisSpacing: 5,
-                childAspectRatio: MediaQuery.of(context).size.width /
-                    (MediaQuery.of(context).size.height / 4),
-              ),
-              itemBuilder: (context, index) {
-                return InkWell(
-                  onTap: () => widget.controller
-                      .selectImage(widget.controller.images[index]),
-                  child: _ImageItem(
-                    selected: widget.controller.imageIsSelected(
-                      widget.controller.images[index].filename,
-                    ),
-                    image: widget.controller.images[index],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// class __ImagesPageState extends State<_ImagesPage> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       color: Colors.black,
+//       height: MediaQuery.of(context).size.height - 40,
+//       child: Column(
+//         children: [
+//           Container(
+//             height: 40,
+//             decoration: const BoxDecoration(
+//                 color: Colors.white,
+//                 borderRadius: BorderRadius.only(
+//                   topLeft: Radius.circular(15),
+//                   topRight: Radius.circular(15),
+//                 )),
+//             child: Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               children: [
+//                 IconButton(
+//                   onPressed: widget.close?.call,
+//                   icon: const Icon(Icons.close),
+//                 ),
+//                 if (widget.controller.multiple)
+//                   Text(widget.controller.selectedImages.length.toString()),
+//                 IconButton(
+//                   onPressed: widget.done?.call,
+//                   icon: const Icon(Icons.check),
+//                 )
+//               ],
+//             ),
+//           ),
+//           Expanded(
+//             child: GridView.builder(
+//               padding: const EdgeInsets.symmetric(horizontal: 5),
+//               itemCount: widget.controller.images.length,
+//               physics: const BouncingScrollPhysics(),
+//               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+//                 crossAxisCount: 3,
+//                 mainAxisExtent: 140,
+//                 crossAxisSpacing: 5,
+//                 mainAxisSpacing: 5,
+//                 childAspectRatio: MediaQuery.of(context).size.width /
+//                     (MediaQuery.of(context).size.height / 4),
+//               ),
+//               itemBuilder: (context, index) {
+//                 return InkWell(
+//                   onTap: () => widget.controller
+//                       .selectImage(widget.controller.images[index]),
+//                   child: _ImageItem(
+//                     selected: widget.controller.imageIsSelected(
+//                       widget.controller.images[index].filename,
+//                     ),
+//                     image: widget.controller.images[index],
+//                   ),
+//                 );
+//               },
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
-class _ImageItem extends StatelessWidget {
-  ///
-  /// medium image
-  /// is formatter usage for package: photo_gallery
-  /// this package list all images of device
-  ///
-  final Medium image;
+// class _ImageItem extends StatelessWidget {
+//   ///
+//   /// medium image
+//   /// is formatter usage for package: photo_gallery
+//   /// this package list all images of device
+//   ///
+//   final Medium image;
 
-  ///
-  /// where selected is true, apply a check in the image
-  ///
-  final bool selected;
+//   ///
+//   /// where selected is true, apply a check in the image
+//   ///
+//   final bool selected;
 
-  ///
-  ///this widget is usage how itemBuilder of painel: _ImagesPage
-  ///
-  const _ImageItem({required this.image, required this.selected});
+//   ///
+//   ///this widget is usage how itemBuilder of painel: _ImagesPage
+//   ///
+//   const _ImageItem({required this.image, required this.selected});
 
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      child: Stack(
-        children: [
-          Hero(
-            tag: image.id,
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  filterQuality: FilterQuality.high,
-                  image: ThumbnailProvider(
-                    mediumId: image.id,
-                    highQuality: true,
-                    height: 150,
-                    width: 150,
-                    mediumType: MediumType.image,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          if (selected)
-            Container(
-              color: Colors.grey.withOpacity(.3),
-              child: Center(
-                child: Stack(
-                  children: [
-                    const Icon(
-                      Icons.done,
-                      size: 52,
-                      color: Colors.white,
-                    ),
-                    Icon(
-                      Icons.done,
-                      size: 50,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          Align(
-            alignment: Alignment.topRight,
-            child: IconButton(
-              color: Colors.white,
-              icon: const Icon(Icons.zoom_out_map_outlined),
-              onPressed: () async {
-                image.getFile().then((value) {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) {
-                      return Hero(
-                        tag: image.id,
-                        child: ViewImage(image: value.path),
-                      );
-                    },
-                  ));
-                });
-              },
-            ),
-          )
-        ],
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return InkWell(
+//       child: Stack(
+//         children: [
+//           Hero(
+//             tag: image.id,
+//             child: Container(
+//               decoration: BoxDecoration(
+//                 image: DecorationImage(
+//                   fit: BoxFit.cover,
+//                   filterQuality: FilterQuality.high,
+//                   image: ThumbnailProvider(
+//                     mediumId: image.id,
+//                     highQuality: true,
+//                     height: 150,
+//                     width: 150,
+//                     mediumType: MediumType.image,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ),
+//           if (selected)
+//             Container(
+//               color: Colors.grey.withOpacity(.3),
+//               child: Center(
+//                 child: Stack(
+//                   children: [
+//                     const Icon(
+//                       Icons.done,
+//                       size: 52,
+//                       color: Colors.white,
+//                     ),
+//                     Icon(
+//                       Icons.done,
+//                       size: 50,
+//                       color: Theme.of(context).primaryColor,
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           Align(
+//             alignment: Alignment.topRight,
+//             child: IconButton(
+//               color: Colors.white,
+//               icon: const Icon(Icons.zoom_out_map_outlined),
+//               onPressed: () async {
+//                 image.getFile().then((value) {
+//                   Navigator.of(context).push(MaterialPageRoute(
+//                     builder: (context) {
+//                       return Hero(
+//                         tag: image.id,
+//                         child: ViewImage(image: value.path),
+//                       );
+//                     },
+//                   ));
+//                 });
+//               },
+//             ),
+//           )
+//         ],
+//       ),
+//     );
+//   }
+// }
