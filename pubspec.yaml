@@ -10,9 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  file_picker: 8.0.0+1
+  file_picker: ^10.2.1
   flutter_sliding_up_panel: 2.0.1
-  permission_handler: 10.2.0
+  permission_handler: ^12.0.0+1
   image_gallery_saver: ^2.0.3
   camerawesome: ^2.0.1
   camera: ^0.10.5+9
