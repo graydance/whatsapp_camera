@@ -5,11 +5,11 @@ import 'package:camera/camera.dart';
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_up_panel/flutter_sliding_up_panel.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 // import 'package:photo_gallery/photo_gallery.dart';
 import 'package:file_picker/file_picker.dart';
 // import 'package:whatsapp_camera/camera/view_image.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 class _WhatsAppCameraController extends ChangeNotifier {
   ///
@@ -90,7 +90,7 @@ class _WhatsAppCameraController extends ChangeNotifier {
   }
 
   void captureImage(File file) {
-    ImageGallerySaver.saveFile(file.path);
+    ImageGallerySaverPlus.saveFile(file.path);
     selectedImages.add(file);
   }
 
