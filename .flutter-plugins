@@ -1,18 +1,18 @@
 # This is a generated file; do not edit or check into version control.
-camera=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/camera-0.10.6/
-camera_android=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/camera_android-0.10.9+11/
+camera=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/camera-0.11.0+2/
+camera_android_camerax=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/camera_android_camerax-0.6.5+2/
 camera_avfoundation=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/camera_avfoundation-0.9.17+5/
 camera_web=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/camera_web-0.3.5/
-camerawesome=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/camerawesome-2.1.0/
-file_picker=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/file_picker-8.0.0+1/
-flutter_plugin_android_lifecycle=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.21/
+file_picker=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/file_picker-8.0.5/
+flutter_plugin_android_lifecycle=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.19/
 image_gallery_saver=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/image_gallery_saver-2.0.3/
+native_device_orientation=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/native_device_orientation-1.2.1/
 path_provider=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/path_provider-2.1.4/
-path_provider_android=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/path_provider_android-2.2.10/
+path_provider_android=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/path_provider_android-2.2.4/
 path_provider_foundation=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/path_provider_foundation-2.4.0/
 path_provider_linux=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/path_provider_linux-2.2.1/
 path_provider_windows=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/path_provider_windows-2.3.0/
-permission_handler=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/permission_handler-10.2.0/
+permission_handler=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/permission_handler-10.4.5/
 permission_handler_android=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/permission_handler_android-10.3.6/
 permission_handler_apple=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/permission_handler_apple-9.1.4/
 permission_handler_windows=/Users/zhangweifeng/.pub-cache/hosted/pub.dev/permission_handler_windows-0.1.3/
