@@ -48,7 +48,7 @@ class _HomeState extends State<Home> {
           List<File>? res = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const WhatsappCamera(),
+              builder: (context) => const WhatsappCamera.fastMode(),
             ),
           );
           if (res != null) files.value = res;

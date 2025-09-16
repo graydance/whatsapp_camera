@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:math' as math;
 
 import 'package:camera/camera.dart';
@@ -32,6 +31,9 @@ class WhatsappCamera extends StatefulWidget {
   /// 是否输出调试日志
   final bool enableLogs;
 
+  /// 是否启用快速拍照模式（跳过图像处理，直接返回原图）
+  final bool fastCaptureMode;
+
   const WhatsappCamera({
     super.key,
     this.multiple = false,
@@ -40,7 +42,24 @@ class WhatsappCamera extends StatefulWidget {
     this.lockLayoutDuringCapture = true,
     this.jpegQuality = 95,
     this.enableLogs = true,
+    this.fastCaptureMode = false,
   });
+
+  /// 快速拍照模式构造函数 - 跳过图像处理，提升拍照速度
+  const WhatsappCamera.fastMode({
+    Key? key,
+    bool multiple = false,
+    bool enableLogs = true,
+  }) : this(
+          key: key,
+          multiple: multiple,
+          force43: false,
+          returnOriginalOnMatch: true,
+          lockLayoutDuringCapture: false,
+          jpegQuality: 85,
+          enableLogs: enableLogs,
+          fastCaptureMode: true,
+        );
 
   @override
   State<WhatsappCamera> createState() => _WhatsappCameraState();
@@ -67,6 +86,7 @@ class _WhatsappCameraState extends State<WhatsappCamera>
   double _minExposureOffset = -4.0;
   double _maxExposureOffset = 4.0;
   bool _showExposureSlider = false;
+  Timer? _exposureUpdateTimer; // 防抖定时器
 
   // 缩放相关状态
   double _currentZoomLevel = 1.0;
@@ -100,7 +120,11 @@ class _WhatsappCameraState extends State<WhatsappCamera>
         .listen((ori) {
       if (!mounted) return;
       setState(() {
-        _nativeOrientation = ori;
+        // 当传感器返回未知状态时，保持上一个有效的方向
+        if (ori != NativeDeviceOrientation.unknown) {
+          _nativeOrientation = ori;
+        }
+        // 如果是未知状态(平放)，保持当前方向不变，避免UI跳动
       });
     });
   }
@@ -113,6 +137,7 @@ class _WhatsappCameraState extends State<WhatsappCamera>
     } catch (_) {}
     _controller?.dispose();
     _focusTimer?.cancel();
+    _exposureUpdateTimer?.cancel();
     _nativeOrientationSub?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -206,6 +231,9 @@ class _WhatsappCameraState extends State<WhatsappCamera>
     if (_controller == null || !_controller!.value.isInitialized) return;
     if (!mounted) return;
 
+    // 提前获取BuildContext相关的数据，避免异步操作后使用
+    final Orientation deviceOri = MediaQuery.of(context).orientation;
+
     // 延迟一小段时间检测是否变成多指操作
     await Future.delayed(const Duration(milliseconds: 30));
     if (_isScaling || !mounted) return;
@@ -228,24 +256,26 @@ class _WhatsappCameraState extends State<WhatsappCamera>
       // 相机预览的实际宽高比（child 的宽高比）；横/竖屏取值不同
       final double cameraAspectRatio =
           _controller!.value.aspectRatio; // width/height of camera
-      final Orientation deviceOri = MediaQuery.of(context).orientation;
-      final double Rp = deviceOri == Orientation.portrait
+      final double previewAspectRatio = deviceOri == Orientation.portrait
           ? (1 / cameraAspectRatio)
           : cameraAspectRatio;
 
       // 容器宽高比（外层 4:3 或 3:4）
-      final double Rc = containerSize.width / containerSize.height;
+      final double containerAspectRatio =
+          containerSize.width / containerSize.height;
 
       // 将容器内坐标映射为相机纹理的标准化坐标（考虑 cover 裁剪）
       double u, v;
-      if (Rp > Rc) {
+      if (previewAspectRatio > containerAspectRatio) {
         // 子更宽，左右裁剪；高度完全匹配
-        final double alpha = Rc / Rp; // Cw / (Ch*Rp)
+        final double alpha = containerAspectRatio /
+            previewAspectRatio; // Cw / (Ch*previewAspectRatio)
         u = (xC / containerSize.width) * alpha + (1 - alpha) / 2;
         v = (yC / containerSize.height);
-      } else if (Rp < Rc) {
+      } else if (previewAspectRatio < containerAspectRatio) {
         // 子更窄，上下裁剪；宽度完全匹配
-        final double alphaY = Rp / Rc; // Ch / (Cw/Rp)
+        final double alphaY = previewAspectRatio /
+            containerAspectRatio; // Ch / (Cw/previewAspectRatio)
         u = (xC / containerSize.width);
         v = (yC / containerSize.height) * alphaY + (1 - alphaY) / 2;
       } else {
@@ -299,22 +329,48 @@ class _WhatsappCameraState extends State<WhatsappCamera>
     }
   }
 
-  /// 调整曝光补偿
+  /// 调整曝光补偿（带防抖）
   Future<void> _setExposureOffset(double offset) async {
     if (_controller == null || !_controller!.value.isInitialized) return;
 
+    // 限制在有效范围内
+    final clampedOffset = offset.clamp(_minExposureOffset, _maxExposureOffset);
+
+    // 立即更新UI状态，提供即时反馈
+    setState(() {
+      _exposureOffset = clampedOffset;
+    });
+
+    // 取消之前的定时器
+    _exposureUpdateTimer?.cancel();
+
+    // 设置防抖定时器，50ms后更新相机
+    _exposureUpdateTimer = Timer(const Duration(milliseconds: 50), () async {
+      try {
+        await _controller!.setExposureOffset(clampedOffset);
+      } catch (e) {
+        // 曝光设置失败，静默处理
+      }
+    });
+  }
+
+  /// 立即设置曝光补偿（用于手势结束时）
+  Future<void> _setExposureOffsetImmediately(double offset) async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+
     try {
-      // 限制在有效范围内
+      // 取消防抖定时器
+      _exposureUpdateTimer?.cancel();
+
       final clampedOffset =
           offset.clamp(_minExposureOffset, _maxExposureOffset);
 
+      // 立即设置
       await _controller!.setExposureOffset(clampedOffset);
 
       setState(() {
         _exposureOffset = clampedOffset;
       });
-
-      // 曝光调整完成
     } catch (e) {
       // 曝光设置失败，静默处理
     }
@@ -324,7 +380,7 @@ class _WhatsappCameraState extends State<WhatsappCamera>
   void _handleExposurePanUpdate(DragUpdateDetails details) {
     // 重置定时器，保持滑块显示
     _focusTimer?.cancel();
-    _focusTimer = Timer(const Duration(milliseconds: 2000), () {
+    _focusTimer = Timer(const Duration(milliseconds: 3000), () {
       if (mounted) {
         setState(() {
           _isFocusing = false;
@@ -334,11 +390,47 @@ class _WhatsappCameraState extends State<WhatsappCamera>
       }
     });
 
-    // 计算新的曝光值 (向上拖拽增加曝光，向下拖拽减少曝光)
-    final double sensitivity = 0.02;
+    // 调整灵敏度，平衡响应速度和精确控制
+    // 根据曝光范围动态调整灵敏度
+    final double range = _maxExposureOffset - _minExposureOffset;
+    final double sensitivity = range / 500.0; // 500像素对应整个范围，进一步降低灵敏度
+
     final double deltaY = details.delta.dy;
     final double newOffset = _exposureOffset - (deltaY * sensitivity);
 
+    _setExposureOffset(newOffset);
+  }
+
+  /// 处理曝光滑块拖拽结束
+  void _handleExposurePanEnd(DragEndDetails details) {
+    // 手势结束时立即应用最终值，确保设置生效
+    _setExposureOffsetImmediately(_exposureOffset);
+  }
+
+  /// 处理整个滑块区域的拖拽（更灵敏的操作）
+  void _handleExposureSliderPanUpdate(DragUpdateDetails details) {
+    // 重置定时器，保持滑块显示
+    _focusTimer?.cancel();
+    _focusTimer = Timer(const Duration(milliseconds: 3000), () {
+      if (mounted) {
+        setState(() {
+          _isFocusing = false;
+          _focusPosition = null;
+          _showExposureSlider = false;
+        });
+      }
+    });
+
+    // 基于整个滑块区域计算相对位置
+    const double sliderHeight = 160.0; // 滑块有效高度（200-40边距）
+    final double range = _maxExposureOffset - _minExposureOffset;
+
+    // 使用更直观的方式：直接基于滑块位置计算曝光值，但降低灵敏度
+    final double deltaY = details.delta.dy;
+    final double sensitivity =
+        range / (sliderHeight * 2.5); // 进一步降低灵敏度，2.5倍的高度对应整个曝光范围
+
+    final double newOffset = _exposureOffset - (deltaY * sensitivity);
     _setExposureOffset(newOffset);
   }
 
@@ -382,10 +474,18 @@ class _WhatsappCameraState extends State<WhatsappCamera>
     }
   }
 
-  /// 裁剪图片为4:3比例，保持拍摄方向 (已弃用，保持自然拍摄比例)
+  /// 裁剪图片为4:3比例，保持拍摄方向
   Future<File> _cropImageTo43(File originalFile,
       {DeviceOrientation? deviceOrientation}) async {
     try {
+      // 快速检查：如果不强制4:3比例，直接返回原图
+      if (!widget.force43) {
+        if (widget.enableLogs) {
+          debugPrint('⚡ 跳过裁剪：未启用force43');
+        }
+        return originalFile;
+      }
+
       // 先解码以读取尺寸，但若无需裁剪则直接返回原图，避免任何重编码导致的色偏
       final Uint8List bytes = await originalFile.readAsBytes();
       final img.Image? decoded = img.decodeImage(bytes);
@@ -403,46 +503,45 @@ class _WhatsappCameraState extends State<WhatsappCamera>
           expectLandscape ? (4 / 3) : (3 / 4);
       final double currentRatio = rawW / rawH;
 
-      // 若不强制 4:3，或者比例已匹配并允许直接返回，则不做重编码
-      if (!widget.force43 ||
-          (widget.returnOriginalOnMatch &&
-              (currentRatio - targetRatioWhenExpected).abs() < 0.01)) {
-        debugPrint('✅ 比例已匹配/不强制裁剪，直接返回原图 ${rawW}x${rawH}');
+      // 若比例已匹配并允许直接返回，则不做重编码
+      if (widget.returnOriginalOnMatch &&
+          (currentRatio - targetRatioWhenExpected).abs() < 0.01) {
+        if (widget.enableLogs) {
+          debugPrint('⚡ 跳过处理：比例已匹配 ${currentRatio.toStringAsFixed(2)}');
+        }
         return originalFile;
       }
 
-      // 需要裁剪时，才烘焙 EXIF 并做必要旋转
-      img.Image baked = img.bakeOrientation(decoded);
-      int originalWidth = baked.width;
-      int originalHeight = baked.height;
-      debugPrint(
-          '🧭 方向信息: device=${deviceOrientation?.name ?? 'unknown'}, baked=${originalWidth}x${originalHeight}');
+      // 需要裁剪时，优化处理流程
+      img.Image processed = decoded;
 
-      if (deviceOrientation != null) {
-        final bool expectLandscape2 =
-            deviceOrientation == DeviceOrientation.landscapeLeft ||
-                deviceOrientation == DeviceOrientation.landscapeRight;
-        if (expectLandscape2 && originalWidth < originalHeight) {
-          final int angle =
-              deviceOrientation == DeviceOrientation.landscapeLeft ? -90 : 90;
-          baked = img.copyRotate(baked, angle: angle);
-          originalWidth = baked.width;
-          originalHeight = baked.height;
-          debugPrint(
-              '🔄 旋转到横屏(${deviceOrientation.name}, angle=$angle): ${originalWidth}x${originalHeight}');
-        } else if (!expectLandscape2 && originalWidth > originalHeight) {
-          final int angle =
-              deviceOrientation == DeviceOrientation.portraitDown ? 180 : -90;
-          baked = img.copyRotate(baked, angle: angle);
-          originalWidth = baked.width;
-          originalHeight = baked.height;
-          debugPrint(
-              '🔄 旋转到竖屏(${deviceOrientation.name}, angle=$angle): ${originalWidth}x${originalHeight}');
+      // 只有在必要时才进行EXIF烘焙（这是最耗时的操作之一）
+      // 尝试烘焙EXIF方向信息，失败则使用原图
+      try {
+        processed = img.bakeOrientation(decoded);
+        if (widget.enableLogs) {
+          debugPrint('🔄 EXIF烘焙完成');
+        }
+      } catch (e) {
+        // EXIF烘焙失败，使用原图
+        processed = decoded;
+        if (widget.enableLogs) {
+          debugPrint('⚠️ EXIF烘焙跳过');
         }
       }
 
+      int originalWidth = processed.width;
+      int originalHeight = processed.height;
+
+      // 简化方向处理逻辑，减少不必要的旋转
+      if (deviceOrientation != null && widget.enableLogs) {
+        debugPrint(
+            '🧭 方向: ${deviceOrientation.name}, 尺寸: ${originalWidth}x$originalHeight');
+      }
+
+      // 快速裁剪，不做额外旋转（现代相机通常已经处理好方向）
       final bool isLandscape = originalWidth >= originalHeight;
-      final double targetRatio = isLandscape ? 4 / 3 : 3 / 4; // width/height
+      final double targetRatio = isLandscape ? 4 / 3 : 3 / 4;
 
       int cropWidth, cropHeight;
       int offsetX = 0, offsetY = 0;
@@ -460,7 +559,7 @@ class _WhatsappCameraState extends State<WhatsappCamera>
       }
 
       final img.Image cropped = img.copyCrop(
-        baked,
+        processed,
         x: offsetX,
         y: offsetY,
         width: cropWidth,
@@ -473,14 +572,49 @@ class _WhatsappCameraState extends State<WhatsappCamera>
         '${DateTime.now().millisecondsSinceEpoch}_${isLandscape ? '4x3' : '3x4'}.jpg',
       );
       final File croppedFile = File(croppedPath);
-      await croppedFile
-          .writeAsBytes(img.encodeJpg(cropped, quality: widget.jpegQuality));
-      debugPrint(
-          '✂️ 已裁剪为 ${isLandscape ? '4:3' : '3:4'} 比例: ${cropWidth}x${cropHeight}');
+
+      // 使用较低的质量以加快编码速度（用户可配置）
+      final int quality = widget.jpegQuality > 90 ? 85 : widget.jpegQuality;
+      await croppedFile.writeAsBytes(img.encodeJpg(cropped, quality: quality));
+
+      if (widget.enableLogs) {
+        debugPrint(
+            '✂️ 裁剪完成 ${isLandscape ? '4:3' : '3:4'}: ${cropWidth}x$cropHeight');
+      }
       return croppedFile;
     } catch (e) {
       debugPrint('❌ 图片裁剪失败: $e');
       return originalFile; // 返回原图
+    }
+  }
+
+  /// 获取捕获方向（不依赖BuildContext，避免异步问题）
+  Future<DeviceOrientation> _getCaptureOrientation() async {
+    try {
+      final NativeDeviceOrientation native =
+          await NativeDeviceOrientationCommunicator()
+              .orientation(useSensor: true);
+
+      switch (native) {
+        case NativeDeviceOrientation.landscapeLeft:
+          return DeviceOrientation.landscapeLeft;
+        case NativeDeviceOrientation.landscapeRight:
+          return DeviceOrientation.landscapeRight;
+        case NativeDeviceOrientation.portraitDown:
+          return DeviceOrientation.portraitDown;
+        case NativeDeviceOrientation.portraitUp:
+          return DeviceOrientation.portraitUp;
+        case NativeDeviceOrientation.unknown:
+        default:
+          // 手机平放或传感器无法确定方向时的容错处理
+          debugPrint('⚠️ 传感器方向未知(native=${native.name})，可能是平放状态，使用默认横屏');
+          // 按用户要求：如果无法识别横竖屏就默认横屏
+          return DeviceOrientation.landscapeLeft;
+      }
+    } catch (e) {
+      // 传感器读取失败时的终极容错
+      debugPrint('❌ 传感器读取失败: $e，使用横屏默认方向');
+      return DeviceOrientation.landscapeLeft; // 按用户要求默认横屏
     }
   }
 
@@ -493,57 +627,49 @@ class _WhatsappCameraState extends State<WhatsappCamera>
 
     try {
       _isCapturing = true;
+
       await HapticFeedback.mediumImpact();
 
-      // 使用物理传感器获取真实设备方向，避免 UI 方向锁定造成误判
-      final NativeDeviceOrientation native =
-          await NativeDeviceOrientationCommunicator()
-              .orientation(useSensor: true);
-      DeviceOrientation captureOrientation;
-      switch (native) {
-        case NativeDeviceOrientation.landscapeLeft:
-          captureOrientation = DeviceOrientation.landscapeLeft;
-          break;
-        case NativeDeviceOrientation.landscapeRight:
-          captureOrientation = DeviceOrientation.landscapeRight;
-          break;
-        case NativeDeviceOrientation.portraitDown:
-          captureOrientation = DeviceOrientation.portraitDown;
-          break;
-        case NativeDeviceOrientation.portraitUp:
-          captureOrientation = DeviceOrientation.portraitUp;
-          break;
-        default:
-          captureOrientation = _controller!.value.deviceOrientation;
+      // 拍照
+      final XFile picture = await _controller!.takePicture();
+
+      File finalFile;
+      if (widget.fastCaptureMode) {
+        // 快速模式：直接使用原图，跳过所有处理
+        finalFile = File(picture.path);
+        if (widget.enableLogs) {
+          debugPrint('⚡ 快速拍照模式：跳过图像处理，直接返回原图');
+        }
+
+        // 快速模式：异步保存，不阻塞返回
+        _selectedImages.add(finalFile);
+        _saveToGalleryAsync(finalFile);
+
+        // 立即返回
+        if (mounted) {
+          Navigator.pop(context, _selectedImages);
+        }
+        return;
+      } else {
+        // 标准模式：进行方向检测和图像处理
+        final DeviceOrientation captureOrientation =
+            await _getCaptureOrientation();
+
+        finalFile = await _cropImageTo43(
+          File(picture.path),
+          deviceOrientation: captureOrientation,
+        );
+
+        if (widget.enableLogs) {
+          debugPrint('📸 标准拍照模式：已完成图像处理和方向纠正');
+        }
+
+        // 标准模式：同步保存到相册
+        await ImageGallerySaver.saveFile(finalFile.path);
+        _selectedImages.add(finalFile);
       }
 
-      // 拍照（先锁定捕获方向与布局方向，拍完解锁）
-      XFile picture;
-      try {
-        // 使用物理方向锁定相机捕获方向，增强一致性
-        await _controller!.lockCaptureOrientation(captureOrientation);
-        setState(() {
-          _lockedCaptureOrientation = captureOrientation;
-        });
-      } catch (_) {}
-      try {
-        picture = await _controller!.takePicture();
-      } finally {
-        // 不在退出前解除布局方向锁定，避免预览在最后一帧跳变。
-        // 也不强制解锁 captureOrientation；控制器将随页面一起销毁。
-      }
-      final File processed = await _cropImageTo43(
-        File(picture.path),
-        deviceOrientation: captureOrientation,
-      );
-
-      // 保存到相册
-      await ImageGallerySaver.saveFile(processed.path);
-
-      _selectedImages.add(processed);
-      debugPrint('📸 照片拍摄成功，并已裁剪为 4:3/3:4，方向已纠正');
-
-      // 返回结果
+      // 标准模式返回结果
       if (mounted) {
         Navigator.pop(context, _selectedImages);
       }
@@ -552,6 +678,23 @@ class _WhatsappCameraState extends State<WhatsappCamera>
     } finally {
       _isCapturing = false;
     }
+  }
+
+  /// 异步保存到相册（不阻塞用户交互）
+  void _saveToGalleryAsync(File file) {
+    // 使用 Future.microtask 确保异步执行
+    Future.microtask(() async {
+      try {
+        await ImageGallerySaver.saveFile(file.path);
+        if (widget.enableLogs) {
+          debugPrint('📱 后台保存到相册成功');
+        }
+      } catch (e) {
+        if (widget.enableLogs) {
+          debugPrint('⚠️ 后台保存到相册失败: $e');
+        }
+      }
+    });
   }
 
   /// 切换相机
@@ -670,7 +813,7 @@ class _WhatsappCameraState extends State<WhatsappCamera>
     }
   }
 
-  double _uiAngle() {
+  double _uiAngle(BuildContext context) {
     // 优先使用陀螺仪的实时方向，修正左右横屏方向（反向问题）
     switch (_nativeOrientation) {
       case NativeDeviceOrientation.portraitUp:
@@ -681,8 +824,12 @@ class _WhatsappCameraState extends State<WhatsappCamera>
         return math.pi / 2; // 修正：左横屏顺时针90°
       case NativeDeviceOrientation.landscapeRight:
         return -math.pi / 2; // 修正：右横屏逆时针90°
+      case NativeDeviceOrientation.unknown:
       default:
-        return 0.0;
+        // 当方向未知时（平放状态），根据当前屏幕方向决定
+        final Orientation currentOrientation =
+            MediaQuery.of(context).orientation;
+        return currentOrientation == Orientation.landscape ? math.pi / 2 : 0.0;
     }
   }
 
@@ -814,116 +961,128 @@ class _WhatsappCameraState extends State<WhatsappCamera>
                 builder: (context, opacity, child) {
                   return Opacity(
                     opacity: opacity,
-                    child: Container(
-                      width: 40,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
-                          width: 1,
+                    child: GestureDetector(
+                      onPanUpdate: _handleExposureSliderPanUpdate,
+                      onPanEnd: _handleExposurePanEnd,
+                      child: Container(
+                        width: 40,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
                         ),
-                      ),
-                      child: Stack(
-                        children: [
-                          // 滑块轨道
-                          Positioned(
-                            left: 17,
-                            top: 20,
-                            bottom: 20,
-                            child: Container(
-                              width: 6,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                            ),
-                          ),
-                          // 亮度图标（上）
-                          Positioned(
-                            top: 8,
-                            left: 0,
-                            right: 0,
-                            child: Icon(
-                              Icons.wb_sunny,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                          // 亮度图标（下）
-                          Positioned(
-                            bottom: 8,
-                            left: 0,
-                            right: 0,
-                            child: Icon(
-                              Icons.brightness_low,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                          // 可拖拽的滑块
-                          Positioned(
-                            left: 12,
-                            top: 20 +
-                                (160 - 20) *
-                                    (1 -
-                                        (_exposureOffset - _minExposureOffset) /
-                                            (_maxExposureOffset -
-                                                _minExposureOffset)),
-                            child: GestureDetector(
-                              onPanUpdate: _handleExposurePanUpdate,
+                        child: Stack(
+                          children: [
+                            // 滑块轨道
+                            Positioned(
+                              left: 17,
+                              top: 20,
+                              bottom: 20,
                               child: Container(
-                                width: 16,
-                                height: 16,
+                                width: 6,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.black.withOpacity(0.2),
-                                    width: 1,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.3),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
+                                  color: Colors.white.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                            ),
+                            // 亮度图标（上）
+                            const Positioned(
+                              top: 8,
+                              left: 0,
+                              right: 0,
+                              child: Icon(
+                                Icons.wb_sunny,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                            // 亮度图标（下）
+                            const Positioned(
+                              bottom: 8,
+                              left: 0,
+                              right: 0,
+                              child: Icon(
+                                Icons.brightness_low,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                            // 可拖拽的滑块
+                            Positioned(
+                              left: 4, // 调整位置使滑块居中 (40-32)/2 = 4
+                              top: 20 +
+                                  (160 - 20) *
+                                      (1 -
+                                          (_exposureOffset -
+                                                  _minExposureOffset) /
+                                              (_maxExposureOffset -
+                                                  _minExposureOffset)),
+                              child: GestureDetector(
+                                onPanUpdate: _handleExposurePanUpdate,
+                                onPanEnd: _handleExposurePanEnd,
+                                child: Container(
+                                  width: 32, // 增大触摸区域
+                                  height: 32,
+                                  alignment: Alignment.center,
+                                  child: Container(
+                                    width: 16,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.black.withOpacity(0.2),
+                                        width: 1,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          // 曝光值显示
-                          Positioned(
-                            left: -15,
-                            right: -15,
-                            top: 20 +
-                                (160 - 20) *
-                                    (1 -
-                                        (_exposureOffset - _minExposureOffset) /
-                                            (_maxExposureOffset -
-                                                _minExposureOffset)) +
-                                20,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.7),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                _exposureOffset.toStringAsFixed(1),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                            // 曝光值显示
+                            Positioned(
+                              left: -15,
+                              right: -15,
+                              top: 20 +
+                                  (160 - 20) *
+                                      (1 -
+                                          (_exposureOffset -
+                                                  _minExposureOffset) /
+                                              (_maxExposureOffset -
+                                                  _minExposureOffset)) +
+                                  20,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                textAlign: TextAlign.center,
+                                child: Text(
+                                  _exposureOffset.toStringAsFixed(1),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -988,7 +1147,7 @@ class _WhatsappCameraState extends State<WhatsappCamera>
                 IconButton(
                   onPressed: _openGallery,
                   icon: AnimatedRotation(
-                    turns: _uiAngle() / (2 * math.pi),
+                    turns: _uiAngle(context) / (2 * math.pi),
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
                     child: const Icon(Icons.photo_library, color: Colors.white),
@@ -1015,7 +1174,7 @@ class _WhatsappCameraState extends State<WhatsappCamera>
                   child: IconButton(
                     onPressed: _toggleFlashMode,
                     icon: AnimatedRotation(
-                      turns: _uiAngle() / (2 * math.pi),
+                      turns: _uiAngle(context) / (2 * math.pi),
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeOut,
                       child: Icon(
@@ -1060,7 +1219,7 @@ class _WhatsappCameraState extends State<WhatsappCamera>
                   child: IconButton(
                     onPressed: _switchCamera,
                     icon: AnimatedRotation(
-                      turns: _uiAngle() / (2 * math.pi),
+                      turns: _uiAngle(context) / (2 * math.pi),
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeOut,
                       child: const Icon(
