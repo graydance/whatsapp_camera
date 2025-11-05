@@ -31,7 +31,7 @@ packages:
       path: "."
       ref: a7a79198919e78f404e8ec532743b56c12643175
       resolved-ref: a7a79198919e78f404e8ec532743b56c12643175
-      url: "https://github.com/willphonez/CamerAwesome.git"
+      url: "https://github.com/willphonez/CamerAwesome"
     source: git
     version: "2.5.0"
   carousel_slider:
