@@ -14,7 +14,10 @@ dependencies:
   flutter_sliding_up_panel: 2.0.1
   permission_handler: 10.2.0
   image_gallery_saver: ^2.0.3
-  camerawesome: ^2.4.0
+  camerawesome:
+    git:
+      url: 'https://github.com/willphonez/CamerAwesome.git'
+      ref: a7a79198919e78f404e8ec532743b56c12643175
 dev_dependencies:
   flutter_test:
     sdk: flutter
