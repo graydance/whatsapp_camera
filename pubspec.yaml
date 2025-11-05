@@ -17,7 +17,7 @@ dependencies:
   camerawesome:
     git:
       url: 'https://github.com/willphonez/CamerAwesome'
-      ref: a7a79198919e78f404e8ec532743b56c12643175
+      ref: c846a7bdfcc0d4d045cc25ed701ab1b775160819
 dev_dependencies:
   flutter_test:
     sdk: flutter
