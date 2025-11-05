@@ -29,10 +29,10 @@ packages:
     dependency: transitive
     description:
       name: camerawesome
-      sha256: "3619d5605fb14ab72c815532c1d9f635512c75df07b5a742b60a9a4b03b6081e"
+      sha256: "8e7f61ac78d4e58f1b198d6baa74b8af931819843e5247262c79539fb2f9949c"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "2.5.0"
   carousel_slider:
     dependency: transitive
     description:
