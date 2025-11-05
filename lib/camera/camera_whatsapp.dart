@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:camera/camera.dart';
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sliding_up_panel/flutter_sliding_up_panel.dart';
@@ -389,15 +388,15 @@ class _WhatsappCameraState extends State<WhatsappCamera>
 
   Future<bool> hasFrontCamera() async {
     // 初始化相机
-    WidgetsFlutterBinding.ensureInitialized();
-    List<CameraDescription> cameras = await availableCameras();
+    // WidgetsFlutterBinding.ensureInitialized();
+    // List<CameraDescription> cameras = await availableCameras();
 
-    // 检查是否有前置摄像头
-    for (var camera in cameras) {
-      if (camera.lensDirection == CameraLensDirection.front) {
-        return true; // 存在前置摄像头
-      }
-    }
+    // // 检查是否有前置摄像头
+    // for (var camera in cameras) {
+    //   if (camera.lensDirection == CameraLensDirection.front) {
+    //     return true; // 存在前置摄像头
+    //   }
+    // }
 
     return false; // 不存在前置摄像头
   }
