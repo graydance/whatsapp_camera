@@ -17,8 +17,8 @@ dependencies:
   image_gallery_saver: ^2.0.3
   camerawesome:
     git:
-      url: 'https://github.com/willphonez/CamerAwesome'
-      ref: 19775944fa88dfb4aad21e903f865399a29f739d
+      url: 'https://github.com/graydance/app-CamerAwesome'
+      ref: a4c4adad83188c384fbdc20674ad1c1738ad8cda
 dev_dependencies:
   flutter_test:
     sdk: flutter

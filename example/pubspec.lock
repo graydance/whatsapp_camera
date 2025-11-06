@@ -29,9 +29,9 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "19775944fa88dfb4aad21e903f865399a29f739d"
-      resolved-ref: "19775944fa88dfb4aad21e903f865399a29f739d"
-      url: "https://github.com/willphonez/CamerAwesome"
+      ref: a4c4adad83188c384fbdc20674ad1c1738ad8cda
+      resolved-ref: a4c4adad83188c384fbdc20674ad1c1738ad8cda
+      url: "https://github.com/graydance/app-CamerAwesome"
     source: git
     version: "2.5.0"
   carousel_slider:
