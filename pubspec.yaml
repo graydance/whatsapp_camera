@@ -1,6 +1,7 @@
 name: whatsapp_camera
 description: 'This is a package to open a camera along with a photo gallery, to simplify the steps of the end user'
 version: 1.0.0
+publish_to: none
 homepage: 'https://github.com/welitonsousa/whatsapp_camera'
 repository: 'https://github.com/welitonsousa/whatsapp_camera'
 issue_tracker: 'https://github.com/welitonsousa/whatsapp_camera/issues'
@@ -16,8 +17,8 @@ dependencies:
   image_gallery_saver: ^2.0.3
   camerawesome:
     git:
-      url: 'https://github.com/willphonez/CamerAwesome'
-      ref: c846a7bdfcc0d4d045cc25ed701ab1b775160819
+      url: 'git@github.com:graydance/app-CamerAwesome.git'
+      ref: 6517c97a14a8b09f45bbe54e2a1acba8eb47f24c
 dev_dependencies:
   flutter_test:
     sdk: flutter
