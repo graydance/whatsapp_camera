@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_sliding_up_panel/flutter_sliding_up_panel.dart';
 import 'package:permission_handler/permission_handler.dart';
 // import 'package:photo_gallery/photo_gallery.dart';
@@ -386,19 +387,24 @@ class _WhatsappCameraState extends State<WhatsappCamera>
     }
   }
 
+  /// 使用原生平台代码精确检测是否有前置摄像头
+  /// 通过Platform Channel调用Android/iOS原生API
   Future<bool> hasFrontCamera() async {
-    // 初始化相机
-    // WidgetsFlutterBinding.ensureInitialized();
-    // List<CameraDescription> cameras = await availableCameras();
+    // 非移动平台直接返回false
+    if (!Platform.isIOS && !Platform.isAndroid) {
+      return false;
+    }
 
-    // // 检查是否有前置摄像头
-    // for (var camera in cameras) {
-    //   if (camera.lensDirection == CameraLensDirection.front) {
-    //     return true; // 存在前置摄像头
-    //   }
-    // }
-
-    return false; // 不存在前置摄像头
+    try {
+      // 创建MethodChannel调用原生代码
+      const platform = MethodChannel('whatsapp_camera/camera_check');
+      final bool hasFront = await platform.invokeMethod('hasFrontCamera');
+      debugPrint('检测到前置摄像头: $hasFront');
+      return hasFront;
+    } catch (e) {
+      debugPrint('检测前置摄像头失败,使用默认值: $e');
+      return false;
+    }
   }
 }
 
