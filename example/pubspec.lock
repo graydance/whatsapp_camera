@@ -29,8 +29,8 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: a4c4adad83188c384fbdc20674ad1c1738ad8cda
-      resolved-ref: a4c4adad83188c384fbdc20674ad1c1738ad8cda
+      ref: "2b55c6324a2766d0a3699284ce488863b41779a3"
+      resolved-ref: "2b55c6324a2766d0a3699284ce488863b41779a3"
       url: "https://github.com/graydance/app-CamerAwesome"
     source: git
     version: "2.5.0"
