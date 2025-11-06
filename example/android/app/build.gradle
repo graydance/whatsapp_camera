@@ -26,13 +26,15 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
+    namespace "com.example.example"
     compileSdkVersion 34
-    ndkVersion flutter.ndkVersion
+    ndkVersion "27.0.12077973"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    
 
     kotlinOptions {
         jvmTarget = '1.8'
@@ -74,4 +76,5 @@ dependencies {
 
 
     testImplementation 'junit:junit:4.12'
+    implementation "androidx.camera:camera-core:1.4.2"
 }
