@@ -18,7 +18,7 @@ dependencies:
   camerawesome:
     git:
       url: 'https://github.com/graydance/app-CamerAwesome'
-      ref: 2b55c6324a2766d0a3699284ce488863b41779a3
+      ref: 778ca9ed55a3664889526a415e102020440b0ea3
 dev_dependencies:
   flutter_test:
     sdk: flutter
