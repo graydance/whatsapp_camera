@@ -29,8 +29,8 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "6f60be655294f07e51829d1217c013f75ebe8b06"
-      resolved-ref: "6f60be655294f07e51829d1217c013f75ebe8b06"
+      ref: c914a7605065be8c5dedacbe0d80cf7fe6ccda6e
+      resolved-ref: c914a7605065be8c5dedacbe0d80cf7fe6ccda6e
       url: "https://github.com/willphonez/CamerAwesome"
     source: git
     version: "2.5.0"
