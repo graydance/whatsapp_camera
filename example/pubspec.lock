@@ -172,10 +172,11 @@ packages:
   image_gallery_saver:
     dependency: transitive
     description:
-      name: image_gallery_saver
-      sha256: "0aba74216a4d9b0561510cb968015d56b701ba1bd94aace26aacdd8ae5761816"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "3515075fb0f11324a2c795d0e4f2e0d18fdc61ba"
+      resolved-ref: "3515075fb0f11324a2c795d0e4f2e0d18fdc61ba"
+      url: "https://github.com/graydance/app-image_gallery_saver"
+    source: git
     version: "2.0.3"
   leak_tracker:
     dependency: transitive
